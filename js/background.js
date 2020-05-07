@@ -1,13 +1,27 @@
-chrome.runtime.onInstalled.addListener(function(){
-	chrome.declarativeContent.onPageChanged.removeRules(undefined, function(){
-		chrome.declarativeContent.onPageChanged.addRules([
-			{
-				conditions: [
-					// 只有打开百度才显示pageAction
-					new chrome.declarativeContent.PageStateMatcher({pageUrl: {urlContains: 'baidu.com'}})
-				],
-				actions: [new chrome.declarativeContent.ShowPageAction()]
-			}
-		]);
+chrome.contextMenus.create({
+	title: 'generate skeleton page',
+	onclick: function() {
+	  sendMessageToContentScript({ cmd: 'update_font_size', size: 42 }, function(
+		response
+	  ) {
+		alert(response);
+	  });
+	}
+  });
+  
+  // 向content-script主动发送消息
+  function sendMessageToContentScript(message, callback) {
+	getCurrentTabId(tabId => {
+	  chrome.tabs.sendMessage(tabId, message, function(response) {
+		if (callback) callback(response);
+	  });
 	});
-});
+  }
+  
+  // 获取当前选项卡ID
+  function getCurrentTabId(callback) {
+	chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+	  if (callback) callback(tabs.length ? tabs[0].id : null);
+	});
+  }
+  
